@@ -1,9 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 This project uses data from a personal activity monitoring device. This device collects data at 5 minute intervals through out the day. The data consists of two months of data from an anonymous individual collected during the months of October and November, 2012 and include the number of steps taken in 5 minute intervals each day.
 
@@ -23,7 +18,8 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 The code below sets the working directory to the git clone of the project, then unzips the dataset if necessary and loads the data into a dataframe called activity using read.csv(). 
 
-```{r loaddata, echo = TRUE}
+
+```r
   # set the working directory to the RepData_PeerAssessment1 git clone
   setwd("~/Documents/coursera/datascience/reproducible_research/RepData_PeerAssessment1")
 
@@ -32,7 +28,13 @@ The code below sets the working directory to the git clone of the project, then 
     unzip("activity.zip")
     date() # log when the date was extracted
   }
+```
 
+```
+## [1] "Sat Sep 19 22:28:02 2015"
+```
+
+```r
   # load the data
   activity <- read.csv("activity.csv")
 ```
@@ -42,12 +44,37 @@ The code below sets the working directory to the git clone of the project, then 
 
 The acitivity data is grouped by date and the steps are summed to get the total number of steps taken per day.  The missing values in the dataset are ignored.  The total number of steps taken each day is shown in a histogram.
 
-```{r stepsperday, echo = TRUE}
+
+```r
   # use the dplyr package for arranging, grouping, and summarising the data 
   require("dplyr")
+```
+
+```
+## Loading required package: dplyr
+## 
+## Attaching package: 'dplyr'
+## 
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+## 
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+```r
   library(dplyr)
   # use the lattic package for plotting
   require("lattice")
+```
+
+```
+## Loading required package: lattice
+```
+
+```r
   library(lattice)
 
   # group the steps by day and get the sum total for each day, ignoring missing (NA) data
@@ -56,13 +83,27 @@ The acitivity data is grouped by date and the steps are summed to get the total 
   histogram(stepsperday$stepsum, xlab="Steps per day")
 ```
 
+![](PA1_template_files/figure-html/stepsperday-1.png) 
+
 The mean and median of the total number of steps taken per day is calculated and reported.
 
-```{r stepsperdaymean, echo = TRUE}
+
+```r
   # get the mean number of steps per day
   mean(stepsperday$stepsum)
+```
+
+```
+## [1] 9354.23
+```
+
+```r
   # get the median number of steps per day
   median(stepsperday$stepsum)
+```
+
+```
+## [1] 10395
 ```
 
 
@@ -70,32 +111,46 @@ The mean and median of the total number of steps taken per day is calculated and
 
 A time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis) is used to show the average daily pattern?
 
-```{r stepsperinterval, echo = TRUE}
+
+```r
   # group the steps by interval and summarise the mean for each, ignoring missing (NA) data
   stepsperinterval <- activity %>% group_by(interval) %>% summarise(stepmean = mean(steps , na.rm = TRUE))
   # time series plot
   xyplot(stepmean ~ interval, data=stepsperinterval, type="l", xlab="Interval", ylab="Average number of steps")
 ```
 
+![](PA1_template_files/figure-html/stepsperinterval-1.png) 
+
 The 5-minute interval that contains the maximum number of steps is found by using a row filter that matches the maximum step average.
 
-```{r maxinterval, echo = TRUE}
+
+```r
   filter(stepsperinterval, stepmean == max(stepsperinterval$stepmean))$interval
+```
+
+```
+## [1] 835
 ```
 
 ## Imputing missing values
 
 There are a number of days/intervals that have missing values (coded as NA).   
 
-```{r missing, echo = TRUE}
+
+```r
   # calculate and report the number of missing values
   missing <- is.na(activity$steps)
   sum(missing)
 ```
 
+```
+## [1] 2304
+```
+
 Since the presence of missing values may introduce bias into some calculations or summaries of the data, the missing values are filled in using the mean for that 5-minute interval. 
 
-```{r impute, echo = TRUE}
+
+```r
   # Create a new dataset that is equal to the original 
   activityfilled <- activity
   # replace the NA with the mean for that 5-minute interval.
@@ -104,22 +159,37 @@ Since the presence of missing values may introduce bias into some calculations o
 
 A histogram of the total number of steps taken each day is shown for the filled in dataset. 
 
-```{r imputehist, echo = TRUE}
+
+```r
   # group the steps by day and get the sum total for each day
   stepsperdayfilled <- activityfilled %>% group_by(date) %>% summarise(stepsum = sum(steps))
   # plot a histogram of total steps taken each day
   histogram(stepsperdayfilled$stepsum, xlab="Steps per day (filled)")
 ```
 
+![](PA1_template_files/figure-html/imputehist-1.png) 
+
 The histogram differs from the one created with the missing values removed.  The new distribution is more normalized with the middle range showing a higher percent of the total.  
 
 The mean and median total number of steps taken per day are shown for the filled in dataset. 
 
-```{r imputestepsperdaymean, echo = TRUE}
+
+```r
   # get the mean number of steps per day
   mean(stepsperdayfilled$stepsum)
+```
+
+```
+## [1] 10766.19
+```
+
+```r
   # get the median number of steps per day
   median(stepsperdayfilled$stepsum)
+```
+
+```
+## [1] 10766.19
 ```
 
 These values differ from the estimates from the first part of the assignment.  Imputing missing data resulted in an increase on the estimates of the total daily number of steps.  Both the mean and medium values saw increases.
@@ -129,7 +199,8 @@ These values differ from the estimates from the first part of the assignment.  I
 
 Using the dataset with the missing values filled in, a new factor variable (daytype) is created with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
 
-```{r daytype, echo = TRUE}
+
+```r
   # the weekend includes Saturday and Sunday
   weekend<- c('Saturday', 'Sunday')
   activityfilled$daytype <- factor((weekdays(as.Date(activityfilled$date)) %in% weekend), levels=c(FALSE, TRUE), labels=c('weekday', 'weekend'))
@@ -137,9 +208,12 @@ Using the dataset with the missing values filled in, a new factor variable (dayt
 
 The weekend and weekday steps are compared by making a panel plot that contains a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
 
-```{r daytypeplot, echo = TRUE}
+
+```r
   stepsperdaytype <- activityfilled %>% group_by(interval, daytype) %>% summarise(stepmean = mean(steps))
   xyplot(stepmean ~ interval | daytype, data=stepsperdaytype, type="l", xlab="Interval", ylab="Number of steps", layout = c(1, 2))
 ```
+
+![](PA1_template_files/figure-html/daytypeplot-1.png) 
 
 The weekend shows a higher level of steps through the day.  The weekday does have a higher step peak but step activity drops off after that. 
